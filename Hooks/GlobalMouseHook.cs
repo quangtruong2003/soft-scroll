@@ -83,7 +83,13 @@ public sealed class GlobalMouseHook : IDisposable
                 }
                 else if (ShiftKeyHorizontal && _keyboard.IsShiftPressed)
                 {
-                    MouseHWheel?.Invoke(this, args);
+                    // Invert delta: vertical wheel up (+) → horizontal left (-)
+                    // WM_MOUSEWHEEL and WM_MOUSEHWHEEL use opposite conventions
+                    // for Shift+wheel mapping. See issue #13.
+                    var hArgs = new MouseWheelEventArgs(-delta);
+                    MouseHWheel?.Invoke(this, hArgs);
+                    if (hArgs.Handled)
+                        args.Handled = true;
                 }
                 else
                 {
